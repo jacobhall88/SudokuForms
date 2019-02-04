@@ -48,12 +48,12 @@ namespace Sudoku
                 for (int j = 0; j < 3; ++j)
                     for (int k = 0; k < 3; ++k)
                     {
-                        Button addButton = new Button();
+                        SudokuButton addButton = new SudokuButton(i, k, j, buildState.getVals()[i, j, k]);
                         addButton.Dock = DockStyle.Fill;
                         addButton.Click += new EventHandler(ButtonClick);
-                        if (buildState.getVals()[i, j, k] > 0)
-                            addButton.Text = buildState.getVals()[i, j, k].ToString();
-                        subRegions[i].Controls.Add(addButton, j, k);
+                        if (buildState.getVals()[i, k, j] > 0)
+                            addButton.Text = buildState.getVals()[i, k, j].ToString();
+                        subRegions[i].Controls.Add(addButton, k, j);
                     }
   
             }
@@ -95,16 +95,19 @@ namespace Sudoku
 
         private void ButtonClick(object sender, EventArgs e)
         {
-            Button clickedButton;
-            clickedButton = (Button)sender;
+            //initialize variables
+            SudokuButton clickedButton;
+            clickedButton = (SudokuButton)sender;
+            int[,,] currentState = state.getVals();
 
+            //create a new dialogue with a 3x3 grid of numbers to pick for the new value
             Form pickNum = new Form();
             TableLayoutPanel numRegion = buildRegion();
             int i = 1;
             for (int r = 0; r < 3; ++r)
                 for (int c = 0; c < 3; ++c)
                 {
-                    Button addButton = new Button();
+                    SudokuButton addButton = new SudokuButton(0, 0, 0);
                     addButton.Text = i++.ToString();
                     addButton.Click += new EventHandler(PickedButtonClicked);
                     numRegion.Controls.Add(addButton, c, r);
@@ -112,13 +115,24 @@ namespace Sudoku
 
             pickNum.Controls.Add(numRegion);
             pickNum.ShowDialog();
+
+            //update the button clicked with the text of the new number chosen
             clickedButton.Text = numberPicked.ToString();
+
+            //update the board state with the new value
+            currentState[clickedButton.region, clickedButton.row, clickedButton.col] = numberPicked;
+            state.updateState(currentState);
+
+            state.testState();
         }
 
         private void PickedButtonClicked(object sender, EventArgs e)
         {
-            Button pickedButton;
-            pickedButton = (Button)sender;
+            //initialize variables
+            SudokuButton pickedButton;
+            pickedButton = (SudokuButton)sender;
+
+            //hold the number chosen in the numberPicked variable for the ButtonClick listener to refer to
             numberPicked = Int32.Parse(pickedButton.Text);
             pickedButton.DialogResult = DialogResult.Cancel;
         }

@@ -23,13 +23,13 @@ namespace Sudoku
             int[,] cols = makeCols(boardState);
 
             //compare each value in each row to each other value in that row
-            for (int i = 0; i < 10; i++) {
-                for (int j = 0; j < 10; j++)
+            for (int i = 0; i < 9; i++) {
+                for (int j = 0; j < 9; j++)
                 {
                     //only validate an entry if it has been assigned a value
                     if (rows[i, j] != 0)
                     {
-                        for (int k = 0; k < 10; k++)
+                        for (int k = 0; k < 9; k++)
                         {
                             //if two values are not the same entry and are equal, set that entry to invalid
                             if (j != k && rows[i, j] == rows[i, k])
@@ -40,14 +40,14 @@ namespace Sudoku
             }
 
             //compare each value in each column to each other value in that column
-            for (int i = 0; i < 10; i++)
+            for (int i = 0; i < 9; i++)
             {
-                for (int j = 0; j < 10; j++)
+                for (int j = 0; j < 9; j++)
                 {
                     //only validate an entry if it has been assigned a value
                     if (cols[i, j] != 0)
                     {
-                        for (int k = 0; k < 10; k++)
+                        for (int k = 0; k < 9; k++)
                         {
                             //if two values are not the same entry and are equal, set that entry to invalid
                             if (j != k && cols[i, j] == cols[i, k])
@@ -58,7 +58,7 @@ namespace Sudoku
             }
 
             //compare each value in each region to each other value in that region
-            for (int i = 0; i<10; i++)
+            for (int i = 0; i<9; i++)
             {
                 for(int j = 0; j < 3; j++)
                 {
