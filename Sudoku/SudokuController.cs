@@ -12,15 +12,7 @@ namespace Sudoku
     {
         private Form mainView = new Form();
         private int numberPicked = 0;
-        private TableLayoutPanel region0;
-        private TableLayoutPanel region1;
-        private TableLayoutPanel region2;
-        private TableLayoutPanel region3;
-        private TableLayoutPanel region4;
-        private TableLayoutPanel region5;
-        private TableLayoutPanel region6;
-        private TableLayoutPanel region7;
-        private TableLayoutPanel region8;
+        private List<TableLayoutPanel> subRegions= new List<TableLayoutPanel>();
         private BoardState state;
 
         public SudokuController()
@@ -43,147 +35,40 @@ namespace Sudoku
             TableLayoutPanel regions = buildRegion();
 
             //build each subregion
-            region0 = buildRegion();
-            region1 = buildRegion();
-            region2 = buildRegion();
-            region3 = buildRegion();
-            region4 = buildRegion();
-            region5 = buildRegion();
-            region6 = buildRegion();
-            region7 = buildRegion();
-            region8 = buildRegion();
+            for (int i = 0; i < 10; i++)
+                subRegions.Add(buildRegion());
+
 
             //Fill out each region's value based on the board state that was passed at intitialization
             for (int i = 0; i < 9; ++i)
             {
-                switch (i)
-                {
-
-                    case 0:
-                        //for each row and column in a region, create and add a button showing the corresponding value
-                        //from the board state. If the value is 0, display nothing.
-                        for (int j = 0; j < 3; ++j)
-                            for (int k = 0; k < 3; ++k)
-                            {
-                                Button addButton = new Button();
-                                addButton.Dock = DockStyle.Fill;
-                                addButton.Click += new EventHandler(ButtonClick);
-                                if (buildState.getVals()[i, j, k] > 0)
-                                    addButton.Text = buildState.getVals()[i, j, k].ToString();
-                                region0.Controls.Add(addButton, j, k);
-                            }
-                        break;
-                    case 1:
-                        for (int j = 0; j < 3; ++j)
-                            for (int k = 0; k < 3; ++k)
-                            {
-                                Button addButton = new Button();
-                                addButton.Dock = DockStyle.Fill;
-                                addButton.Click += new EventHandler(ButtonClick);
-                                if (buildState.getVals()[i, j, k] > 0)
-                                    addButton.Text = buildState.getVals()[i, j, k].ToString();
-                                region1.Controls.Add(addButton, j, k);
-                            }
-                        break;
-                    case 2:
-                        for (int j = 0; j < 3; ++j)
-                            for (int k = 0; k < 3; ++k)
-                            {
-                                Button addButton = new Button();
-                                addButton.Dock = DockStyle.Fill;
-                                addButton.Click += new EventHandler(ButtonClick);
-                                if (buildState.getVals()[i, j, k] > 0)
-                                    addButton.Text = buildState.getVals()[i, j, k].ToString();
-                                region2.Controls.Add(addButton, j, k);
-                            }
-                        break;
-                    case 3:
-                        for (int j = 0; j < 3; ++j)
-                            for (int k = 0; k < 3; ++k)
-                            {
-                                Button addButton = new Button();
-                                addButton.Dock = DockStyle.Fill;
-                                addButton.Click += new EventHandler(ButtonClick);
-                                if (buildState.getVals()[i, j, k] > 0)
-                                    addButton.Text = buildState.getVals()[i, j, k].ToString();
-                                region3.Controls.Add(addButton, j, k);
-                            }
-                        break;
-                    case 4:
-                        for (int j = 0; j < 3; ++j)
-                            for (int k = 0; k < 3; ++k)
-                            {
-                                Button addButton = new Button();
-                                addButton.Dock = DockStyle.Fill;
-                                addButton.Click += new EventHandler(ButtonClick);
-                                if (buildState.getVals()[i, j, k] > 0)
-                                    addButton.Text = buildState.getVals()[i, j, k].ToString();
-                                region4.Controls.Add(addButton, j, k);
-                            }
-                        break;
-                    case 5:
-                        for (int j = 0; j < 3; ++j)
-                            for (int k = 0; k < 3; ++k)
-                            {
-                                Button addButton = new Button();
-                                addButton.Dock = DockStyle.Fill;
-                                addButton.Click += new EventHandler(ButtonClick);
-                                if (buildState.getVals()[i, j, k] > 0)
-                                    addButton.Text = buildState.getVals()[i, j, k].ToString();
-                                region5.Controls.Add(addButton, j, k);
-                            }
-                        break;
-                    case 6:
-                        for (int j = 0; j < 3; ++j)
-                            for (int k = 0; k < 3; ++k)
-                            {
-                                Button addButton = new Button();
-                                addButton.Dock = DockStyle.Fill;
-                                addButton.Click += new EventHandler(ButtonClick);
-                                if (buildState.getVals()[i, j, k] > 0)
-                                    addButton.Text = buildState.getVals()[i, j, k].ToString();
-                                region6.Controls.Add(addButton, j, k);
-                            }
-                        break;
-                    case 7:
-                        for (int j = 0; j < 3; ++j)
-                            for (int k = 0; k < 3; ++k)
-                            {
-                                Button addButton = new Button();
-                                addButton.Dock = DockStyle.Fill;
-                                addButton.Click += new EventHandler(ButtonClick);
-                                if (buildState.getVals()[i, j, k] > 0)
-                                    addButton.Text = buildState.getVals()[i, j, k].ToString();
-                                region7.Controls.Add(addButton, j, k);
-                            }
-                        break;
-                    case 8:
-                        for (int j = 0; j < 3; ++j)
-                            for (int k = 0; k < 3; ++k)
-                            {
-                                Button addButton = new Button();
-                                addButton.Dock = DockStyle.Fill;
-                                addButton.Click += new EventHandler(ButtonClick);
-                                if (buildState.getVals()[i, j, k] > 0)
-                                    addButton.Text = buildState.getVals()[i, j, k].ToString();
-                                region8.Controls.Add(addButton, j, k);
-                            }
-                        break;
-
-                }
-
+              
+                //for each row and column in a region, create and add a button showing the corresponding value
+                //from the board state. If the value is 0, display nothing.
+                for (int j = 0; j < 3; ++j)
+                    for (int k = 0; k < 3; ++k)
+                    {
+                        Button addButton = new Button();
+                        addButton.Dock = DockStyle.Fill;
+                        addButton.Click += new EventHandler(ButtonClick);
+                        if (buildState.getVals()[i, j, k] > 0)
+                            addButton.Text = buildState.getVals()[i, j, k].ToString();
+                        subRegions[i].Controls.Add(addButton, j, k);
+                    }
+  
             }
 
+
             //add each subregion to the parent region container
-            regions.Controls.Add(region0, 0, 0);
-            regions.Controls.Add(region1, 1, 0);
-            regions.Controls.Add(region2, 2, 0);
-            regions.Controls.Add(region3, 0, 1);
-            regions.Controls.Add(region4, 1, 1);
-            regions.Controls.Add(region5, 2, 1);
-            regions.Controls.Add(region6, 0, 2);
-            regions.Controls.Add(region7, 1, 2);
-            regions.Controls.Add(region8, 2, 2);
+            regions.Controls.Add(subRegions[0], 0, 0);
+            regions.Controls.Add(subRegions[1], 1, 0);
+            regions.Controls.Add(subRegions[2], 2, 0);
+            regions.Controls.Add(subRegions[3], 0, 1);
+            regions.Controls.Add(subRegions[4], 1, 1);
+            regions.Controls.Add(subRegions[5], 2, 1);
+            regions.Controls.Add(subRegions[6], 0, 2);
+            regions.Controls.Add(subRegions[7], 1, 2);
+            regions.Controls.Add(subRegions[8], 2, 2);
 
 
             mainView.Controls.Add(regions);
