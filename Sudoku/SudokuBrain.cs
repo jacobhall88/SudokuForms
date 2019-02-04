@@ -85,17 +85,25 @@ namespace Sudoku
         }
 
         //returns an array of all the values in each row
-        public int[,] makeRows(int[,,] boardState)
+        public static int[,] makeRows(int[,,] boardState)
         {
             int[,] rows = new int[9, 9];
+
+            for (int i = 0; i < 9; i++)
+                for (int j = 0; j < 9; j++)
+                    rows[i, j] = boardState[j/3 + ((i/3)*3), i - ((i/3)*3), j%3];
 
             return rows;
         }
 
         //returns an array of all values in each column
-        public int[,] makeCols(int[,,] boardState)
+        public static int[,] makeCols(int[,,] boardState)
         {
             int[,] cols = new int[9, 9];
+
+            for (int i = 0; i < 9; i++)
+                for (int j = 0; j < 9; j++)
+                    cols[i, j] = boardState[((j/3)*3) + (i / 3), i - ((i / 3) * 3), j % 3];
 
             return cols;
         }

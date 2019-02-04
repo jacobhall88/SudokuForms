@@ -123,7 +123,8 @@ namespace Sudoku
             currentState[clickedButton.region, clickedButton.row, clickedButton.col] = numberPicked;
             state.updateState(currentState);
 
-            state.testState();
+            //test code
+            SudokuBrain.makeCols(state.getVals());
         }
 
         private void PickedButtonClicked(object sender, EventArgs e)
