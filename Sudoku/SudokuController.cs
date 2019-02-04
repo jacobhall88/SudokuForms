@@ -10,25 +10,28 @@ namespace Sudoku
 {
     class SudokuController
     {
-        Form mainView = new Form();
-        int numberPicked = 0;
-        TableLayoutPanel region0;
-        TableLayoutPanel region1;
-        TableLayoutPanel region2;
-        TableLayoutPanel region3;
-        TableLayoutPanel region4;
-        TableLayoutPanel region5;
-        TableLayoutPanel region6;
-        TableLayoutPanel region7;
-        TableLayoutPanel region8;
+        private Form mainView = new Form();
+        private int numberPicked = 0;
+        private TableLayoutPanel region0;
+        private TableLayoutPanel region1;
+        private TableLayoutPanel region2;
+        private TableLayoutPanel region3;
+        private TableLayoutPanel region4;
+        private TableLayoutPanel region5;
+        private TableLayoutPanel region6;
+        private TableLayoutPanel region7;
+        private TableLayoutPanel region8;
+        private BoardState state;
 
         public SudokuController()
         {
-            buildForm(new BoardState());
+            state = new BoardState();
+            buildForm(state);
         }
 
         public SudokuController(BoardState inputState)
         {
+            state = inputState;
             buildForm(inputState);
         }
 
