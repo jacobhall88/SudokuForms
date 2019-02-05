@@ -13,10 +13,10 @@ namespace Sudoku
         }
 
         //accepts a 3d array representing the current board state.
-        //returns a 3d bool array denoting whether any region, column, or row is invalid (true=invalid)
-        //first value of array designates the region, column, or row respectively
+        //returns a 3d bool array denoting whether any region, row, or column is invalid (true=invalid)
+        //first value of array designates the region, row, or column respectively
         //second value designates which of those is invalid
-        public bool[,] validateBoard(int[,,] boardState)
+        public static bool[,] validateBoard(int[,,] boardState)
         {
             bool[,] valid = new bool[3,9];
             int[,] rows = makeRows(boardState);
@@ -24,34 +24,31 @@ namespace Sudoku
 
             //compare each value in each row to each other value in that row
             for (int i = 0; i < 9; i++) {
-                for (int j = 0; j < 9; j++)
-                {
+                for (int j = 0; j < 9; j++){
+
                     //only validate an entry if it has been assigned a value
-                    if (rows[i, j] != 0)
-                    {
+                    if (rows[i, j] != 0) {
                         for (int k = 0; k < 9; k++)
                         {
                             //if two values are not the same entry and are equal, set that entry to invalid
                             if (j != k && rows[i, j] == rows[i, k])
-                                valid[2, i] = true;
+                                valid[1, i] = true;
                         }
                     }
                 }
             }
 
             //compare each value in each column to each other value in that column
-            for (int i = 0; i < 9; i++)
-            {
-                for (int j = 0; j < 9; j++)
-                {
+            for (int i = 0; i < 9; i++) {
+                for (int j = 0; j < 9; j++) {
+
                     //only validate an entry if it has been assigned a value
-                    if (cols[i, j] != 0)
-                    {
+                    if (cols[i, j] != 0){
                         for (int k = 0; k < 9; k++)
                         {
                             //if two values are not the same entry and are equal, set that entry to invalid
                             if (j != k && cols[i, j] == cols[i, k])
-                                valid[1, i] = true;
+                                valid[2, i] = true;
                         }
                     }
                 }
@@ -91,7 +88,13 @@ namespace Sudoku
 
             for (int i = 0; i < 9; i++)
                 for (int j = 0; j < 9; j++)
-                    rows[i, j] = boardState[j/3 + ((i/3)*3), i - ((i/3)*3), j%3];
+                    rows[i, j] = boardState[j/3 + ((i/3)*3), j % 3, i - ((i/3)*3)];
+
+            //test code
+            //for (int i = 0; i < 9; i++)
+            //    for (int j = 0; j < 9; j++)
+            //        Console.WriteLine(rows[i, j]);
+            //Console.WriteLine("XXXXXXXXXXXXXX");
 
             return rows;
         }
