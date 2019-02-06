@@ -48,21 +48,28 @@ namespace Sudoku
             //Fill out each region's value based on the board state that was passed at intitialization
             for (int i = 0; i < 9; ++i)
             {
-              
+
                 //for each row and column in a region, create and add a button showing the corresponding value
                 //from the board state. If the value is 0, display nothing.
                 for (int j = 0; j < 3; ++j)
                     for (int k = 0; k < 3; ++k)
                     {
-                        SudokuButton addButton = new SudokuButton(i, k, j, buildState.getVals()[i, j, k]);
+                        SudokuButton addButton = new SudokuButton(i, j, k, buildState.getVals()[i, j, k]);
                         addButton.Dock = DockStyle.Fill;
-                        addButton.Click += new EventHandler(ButtonClick);
+                        if (!buildState.getFixed()[i, k, j])
+                            addButton.Click += new EventHandler(ButtonClick);
+                        else
+                        {
+                            addButton.ForeColor = Color.White;
+                            addButton.BackColor = Color.Black;
+                        }
+
                         if (buildState.getVals()[i, k, j] > 0)
                             addButton.Text = buildState.getVals()[i, k, j].ToString();
                         subRegions[i].Controls.Add(addButton, k, j);
                         buttons.Add(addButton);
                     }
-  
+
             }
 
 
@@ -102,53 +109,52 @@ namespace Sudoku
         //colors each entry depending on whether or not it is a valid value
         private void colorValid(bool[,] valid)
         {
-            //if an entry is colored Red but is not in an invalid region, set ForeColor to Black
-            foreach (SudokuButton updateButton in buttons){
-                if(updateButton.ForeColor == Color.FromName("Red")){
-                    if(!valid[0,updateButton.region] && !valid[1, (updateButton.row + (updateButton.region / 3) * 3)] && !valid[2, (updateButton.col + (updateButton.region % 3) * 3)]){
-                        updateButton.ForeColor = Color.FromName("Black");
+            //if an entry is colored Red but is not invalid, set ForeColor to Black or White
+            foreach (SudokuButton updateButton in buttons)
+            {
+                if (updateButton.ForeColor == Color.FromName("Red"))
+                {
+                    //sets black-backgrounded immutable values to white, and white-backgrounded mutable entries to black
+                    if (!valid[0, updateButton.region] && !valid[1, updateButton.altRow] && !valid[2, updateButton.altCol])
+                    {
+                        if (updateButton.BackColor == Color.Black)
+                            updateButton.ForeColor = Color.FromName("White");
+                        else
+                            updateButton.ForeColor = Color.FromName("Black");
                     }
                 }
             }
             //if an entry is in an invalid region, row, or column, set ForeColor to Red
-            for (int i = 0; i < 3; i++){
-                for (int j = 0; j < 9; j++){
-                    if (valid[i, j]){
+            for (int i = 0; i < 3; i++)
+            {
+                for (int j = 0; j < 9; j++)
+                {
+                    if (valid[i, j])
+                    {
                         foreach (SudokuButton updateButton in buttons)
                         {
                             switch (i)
                             {
                                 case 0:
-                                    if (updateButton.region == j && !(updateButton.value == 0)){
+                                    if (updateButton.region == j)
                                         updateButton.ForeColor = Color.FromName("Red");
-                                        //test code
-                                        Console.WriteLine("Region " + j + " is invalid. This Button is at postion " + updateButton.region + (updateButton.row + (updateButton.region / 3) * 3) + (updateButton.col + (updateButton.region % 3) * 3));
-                                    }
                                     break;
                                 case 1:
-                                    if ((updateButton.row + (updateButton.region/3) * 3) == j && !(updateButton.value == 0))
-                                        {
+                                    if (updateButton.altRow == j)
                                         updateButton.ForeColor = Color.FromName("Red");
-                                        //test code
-                                        Console.WriteLine("Row " + j + " is invalid. This Button is at postion " + updateButton.region + (updateButton.row + (updateButton.region / 3) * 3) + (updateButton.col + (updateButton.region % 3) * 3));
-                                    }
                                     break;
                                 case 2:
-                                    if ((updateButton.col + (updateButton.region%3) * 3) == j && !(updateButton.value == 0))
-                                        {
+                                    if (updateButton.altCol == j)
                                         updateButton.ForeColor = Color.FromName("Red");
-                                        //test code
-                                        Console.WriteLine("Column " + j + " is invalid. This Button is at postion " + updateButton.region + (updateButton.row + (updateButton.region / 3) * 3) + (updateButton.col + (updateButton.region % 3) * 3));
-                                    }
                                     break;
                             }
                         }
                     }
                 }
             }
-            Console.WriteLine("XXXXXXXXXXXXXX");
         }
 
+        //event handler for when a button is clicked on from the main view. opens a new dialogue to pick a value for that button
         private void ButtonClick(object sender, EventArgs e)
         {
             //initialize variables
@@ -177,21 +183,15 @@ namespace Sudoku
             clickedButton.value = numberPicked;
 
             //update the board state with the new value and validate the new board state
-            currentState[clickedButton.region, clickedButton.row, clickedButton.col] = numberPicked;
+            currentState[clickedButton.region, clickedButton.col, clickedButton.row] = numberPicked;
             state.updateState(currentState);
             bool[,] validation = SudokuBrain.validateBoard(state.getVals());
             colorValid(validation);
 
-            //test code
-            //for (int i = 0; i < 3; i++){
-            //    for (int j = 0; j < 9; j++){
-            //        Console.WriteLine(validation[i, j]);
-            //    }
-            //}
-            //Console.WriteLine("XXXXXXXXXXXXX");
-
         }
 
+        //event handler for when a new value is selected for an entry
+        //TODO: fix having to double click
         private void PickedButtonClicked(object sender, EventArgs e)
         {
             //initialize variables
