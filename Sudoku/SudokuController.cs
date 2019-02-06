@@ -5,6 +5,7 @@ using System.Text;
 using System.Drawing;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.IO;
 
 namespace Sudoku
 {
@@ -56,8 +57,10 @@ namespace Sudoku
                     {
                         SudokuButton addButton = new SudokuButton(i, j, k, buildState.getVals()[i, j, k]);
                         addButton.Dock = DockStyle.Fill;
-                        if (!buildState.getFixed()[i, k, j])
+                        if (!buildState.getFixed()[i, k, j]){
                             addButton.Click += new EventHandler(ButtonClick);
+                            addButton.BackColor = Color.White;
+                        }
                         else
                         {
                             addButton.ForeColor = Color.White;
@@ -84,13 +87,26 @@ namespace Sudoku
             regions.Controls.Add(subRegions[7], 1, 2);
             regions.Controls.Add(subRegions[8], 2, 2);
 
+            //create parent container to hold parent region and menu bar
+            TableLayoutPanel parent = new TableLayoutPanel();
+            parent.Dock = DockStyle.Fill;
+            parent.ColumnCount = 1;
+            parent.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+            parent.RowCount = 2;
+            parent.RowStyles.Add(new RowStyle(SizeType.Absolute, 20));
+            parent.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
 
-            mainView.Controls.Add(regions);
+            //create the menu bar, then add the menu and the parent region
+            parent.Controls.Add(buildMenu());
+            parent.Controls.Add(regions);
+            mainView.Controls.Add(parent);
+
+            //display constructed board
             mainView.ShowDialog();
 
         }
 
-        //build a 3x3 table, used for both the parent container and each of the child 3x3 regions
+        //build a 3x3 table, used for both the parent region and each of the child 3x3 regions
         private TableLayoutPanel buildRegion()
         {
             TableLayoutPanel retTable = new TableLayoutPanel();
@@ -154,6 +170,30 @@ namespace Sudoku
             }
         }
 
+        //create and return the menu bar
+        private TableLayoutPanel buildMenu()
+        {
+            TableLayoutPanel menu = new TableLayoutPanel();
+            menu.ColumnCount = 4;
+            menu.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 25));
+            menu.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 25));
+            menu.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 25));
+            menu.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 25));
+
+            Button open = new Button();
+            open.Dock = DockStyle.Fill;
+            open.Text = "Open Board";
+            open.Click += new EventHandler(OpenClick);
+            menu.Controls.Add(open);
+
+            Button save = new Button();
+            save.Dock = DockStyle.Fill;
+            save.Click += new EventHandler(SaveClick);
+            menu.Controls.Add(save);
+
+            return menu;
+        }
+
         //event handler for when a button is clicked on from the main view. opens a new dialogue to pick a value for that button
         private void ButtonClick(object sender, EventArgs e)
         {
@@ -185,7 +225,7 @@ namespace Sudoku
             //update the board state with the new value and validate the new board state
             currentState[clickedButton.region, clickedButton.col, clickedButton.row] = numberPicked;
             state.updateState(currentState);
-            bool[,] validation = SudokuBrain.validateBoard(state.getVals());
+            bool[,] validation = state.validateBoard();
             colorValid(validation);
 
         }
@@ -201,6 +241,74 @@ namespace Sudoku
             //hold the number chosen in the numberPicked variable for the ButtonClick listener to refer to
             numberPicked = Int32.Parse(pickedButton.Text);
             pickedButton.DialogResult = DialogResult.Cancel;
+        }
+
+        //event handler for when 'Open Board' button is clicked
+        private void OpenClick(object sender, EventArgs e)
+        {
+            OpenFileDialog open = new OpenFileDialog();
+            open.Filter = "Sudoku File | *.sdk";
+
+            if (open.ShowDialog() == DialogResult.OK)
+            {
+                state.updateFromFile(open.OpenFile());
+
+                //update appearance of each button per the new board state
+                foreach(SudokuButton openButton in buttons)
+                {
+                    openButton.value = state.getVals()[openButton.region, openButton.row, openButton.col];
+                    if (openButton.value != 0)
+                        openButton.Text = state.getVals()[openButton.region, openButton.row, openButton.col].ToString();
+                    else
+                        openButton.Text = "";
+
+                    //convert button from mutable to immutable if necessary
+                    if(openButton.BackColor == Color.Black && !state.getFixed()[openButton.region, openButton.row, openButton.col]){
+                        openButton.BackColor = Color.White;
+                        openButton.ForeColor = Color.Black;
+                        openButton.Click += new EventHandler(ButtonClick);
+                    }
+                    if(openButton.BackColor == Color.White && state.getFixed()[openButton.region, openButton.row, openButton.col] && openButton.value != 0)
+                    {
+                        openButton.BackColor = Color.Black;
+                        openButton.ForeColor = Color.White;
+                        openButton.Click -= ButtonClick;
+                    }
+                }
+                colorValid(state.validateBoard());
+
+            }
+        }
+
+        //event handler for when 'Save Board' button is clicked
+        private void SaveClick(object sender, EventArgs e)
+        {
+            SaveFileDialog save = new SaveFileDialog();
+            save.Filter = "Sudoku File | *.sdk";
+
+            if (save.ShowDialog() == DialogResult.OK){
+                StreamWriter writer = new StreamWriter(save.OpenFile());
+                for (int i = 0; i < 9; i++){
+                    for (int j = 0; j < 3; j++){
+                        for (int k = 0; k < 3; k++){
+                            writer.Write(state.getVals()[i, j, k]);
+                        }
+                    }
+                }
+
+                for (int i = 0; i < 9; i++){
+                    for (int j = 0; j < 3; j++){
+                        for (int k = 0; k < 3; k++){
+                            if (state.getFixed()[i, j, k])
+                                writer.Write(1);
+                            else
+                                writer.Write(0);
+                        }
+                    }
+                }
+                writer.Dispose();
+                writer.Close();
+            }
         }
     }
 }
