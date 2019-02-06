@@ -56,13 +56,7 @@ namespace Sudoku
                     {
                         SudokuButton addButton = new SudokuButton(i, k, j, buildState.getVals()[i, j, k]);
                         addButton.Dock = DockStyle.Fill;
-                        if(!buildState.getFixed()[i,j,k])
-                            addButton.Click += new EventHandler(ButtonClick);
-                        else{
-                            addButton.ForeColor = Color.White;
-                            addButton.BackColor = Color.Black;
-                        }
-                            
+                        addButton.Click += new EventHandler(ButtonClick);
                         if (buildState.getVals()[i, k, j] > 0)
                             addButton.Text = buildState.getVals()[i, k, j].ToString();
                         subRegions[i].Controls.Add(addButton, k, j);

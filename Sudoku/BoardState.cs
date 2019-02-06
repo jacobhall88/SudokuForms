@@ -54,11 +54,6 @@ namespace Sudoku
             return boardVals;
         }
 
-        public bool[,,] getFixed()
-        {
-            return fixedVals;
-        }
-
         //test method
         public void testState()
         {
