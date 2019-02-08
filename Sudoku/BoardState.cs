@@ -11,6 +11,7 @@ namespace Sudoku
 
     class BoardState
     {
+        int testcount = 1;
         //3d array of ints representing all values on the board, represted as region, column, row
         int[,,] boardVals;
 
@@ -59,6 +60,19 @@ namespace Sudoku
         public bool[,,] getFixed()
         {
             return fixedVals;
+        }
+
+        //set all non-zero values to be immutable
+        public void setFixed()
+        {
+            for (int i = 0; i < 9; i++)
+                for (int j = 0; j < 3; j++)
+                    for (int k = 0; k < 3; k++) {
+                        if (boardVals[i, j, k] != 0)
+                            fixedVals[i, j, k] = true;
+                        else
+                            fixedVals[i, j, k] = false;
+                    }
         }
 
         //test method
@@ -145,6 +159,90 @@ namespace Sudoku
             return valid;
         }
 
+        public bool isValid()
+        {
+            bool retFlag = true;
+            bool[,] valid = new bool[3, 9];
+            int[,] rows = makeRows(boardVals);
+            int[,] cols = makeCols(boardVals);
+
+            //for (int i = 0; i < 9; i++)
+            //    for (int j = 0; j < 3; j++)
+            //        for (int k = 0; k < 3; k++)
+            //            Console.Write(boardVals[i, j, k]);
+
+            //compare each value in each row to each other value in that row
+            for (int i = 0; i < 9; i++)
+            {
+                for (int j = 0; j < 9; j++)
+                {
+
+                    //only validate an entry if it has been assigned a value
+                    if (rows[i, j] != 0)
+                    {
+                        for (int k = 0; k < 9; k++)
+                        {
+                            //if two values are not the same entry and are equal, set that entry to invalid
+                            if (j != k && rows[i, j] == rows[i, k])
+                            {
+                                retFlag = false;
+                            }
+
+                        }
+                    }
+                }
+            }
+
+            //compare each value in each column to each other value in that column
+            for (int i = 0; i < 9; i++)
+            {
+                for (int j = 0; j < 9; j++)
+                {
+
+                    //only validate an entry if it has been assigned a value
+                    if (cols[i, j] != 0)
+                    {
+                        for (int k = 0; k < 9; k++)
+                        {
+                            //if two values are not the same entry and are equal, set that entry to invalid
+                            if (j != k && cols[i, j] == cols[i, k])
+                            {
+                                retFlag = false;
+                            }
+                        }
+                    }
+                }
+            }
+
+            //compare each value in each region to each other value in that region
+            for (int i = 0; i < 9; i++)
+            {
+                for (int j = 0; j < 3; j++)
+                {
+                    for (int k = 0; k < 3; k++)
+                    {
+                        //only validate an entry if it has been assigned a value
+                        if (boardVals[i, j, k] != 0)
+                        {
+                            for (int l = 0; l < 3; l++)
+                            {
+                                for (int m = 0; m < 3; m++)
+                                {
+                                    //if two values are not the same entry and are equal, set that entry to invalid
+                                    if (!(l == j && m == k) && boardVals[i, j, k] == boardVals[i, l, m])
+                                    {
+                                        retFlag = false;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            return retFlag;
+        }
+
         //returns an array of all the values in each row
         public int[,] makeRows(int[,,] boardState)
         {
@@ -194,6 +292,81 @@ namespace Sudoku
             }
 
             file.Close();
+        }
+
+        public void Solve(int entry, int val)
+        {
+            Console.WriteLine("This is call number " + ++testcount);
+
+            //returns if all values are filled and valid
+            if (entry == 81)
+            {
+                Console.WriteLine("Solved!");
+                return;
+            }
+
+            //creating reference coordinates based on entry value
+            int reg = entry / 9;
+            int col = (entry - (reg * 9)) % 3;
+            int row = (entry - (reg * 9)) / 3;
+
+
+            //if current entry being checked is a fixed value, go the next value
+            if (!fixedVals[reg, row, col])
+            {
+                Console.WriteLine("");
+                Console.WriteLine("Making an attempt at entry " + entry + " using value " + val);
+                Console.WriteLine("This entry is at region " + reg + ", col " + col + ", row " + row);
+
+                //assign entry the value to be tested
+                boardVals[reg, row, col] = val;
+
+                //if the value is valid, go to the next entry
+                if (isValid())
+                {
+                    Console.WriteLine("Entry Valid at " + entry);
+                    val = 1;
+                    entry++;
+                    Console.WriteLine("Trying the next entry at " + entry);
+                    Solve(entry, val);
+                }
+
+                //if the value is invlid and all 9 values have not been tried,
+                //increment value and call again at same entry
+                if (!isValid() && val < 9)
+                {
+                    Console.WriteLine("Entry Invalid at " + entry + " with value " + val);
+                    ++val;
+                    Console.WriteLine("Trying again with value " + val);
+                    Solve(entry, val);
+                }
+
+                //if the value in invalid and all 9 values have been tried,
+                //zero out the entry and go back to the previous non-fixed entry
+                if (!isValid() && val == 9)
+                {
+                    do
+                    {
+                        boardVals[reg, row, col] = 0;
+
+                        Console.WriteLine("Reached Value 9 and was still invalid");
+                        --entry;
+                        Console.WriteLine("Trying again at entry " + entry);
+                        Console.WriteLine("The value at that entry is " + boardVals[reg, row, col]);
+                        reg = entry / 9;
+                        col = (entry - reg * 9) % 3;
+                        row = (entry - reg * 9) / 3;
+                        if (fixedVals[reg, row, col])
+                            Console.WriteLine("But that's a fixed value, so I'll go back one more");
+                        Console.WriteLine("");
+                    } while (boardVals[reg, row, col] == 9 || fixedVals[reg, row, col]);
+                    val = boardVals[reg, row, col] + 1;
+
+                    Solve(entry, val);
+
+                }
+            }
+            else Solve(++entry, val);
         }
     }
 }

@@ -9,7 +9,7 @@ namespace Sudoku
 {
     class Program
     {
-        [STAThread] static void Main(string[] args)
+        static void Main(string[] args)
         {
             int[,,] testVals = new int[9, 3, 3];
             testVals[0, 0, 0] = 0;
