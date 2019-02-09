@@ -56,6 +56,11 @@ namespace Sudoku
         {
             return boardVals;
         }
+        public int getVals(int r, int c, int ro)
+        {
+            int ret = boardVals[r, c, ro];
+            return ret;
+        }
 
         public bool[,,] getFixed()
         {
@@ -95,8 +100,8 @@ namespace Sudoku
         public bool[,] validateBoard()
         {
             bool[,] valid = new bool[3, 9];
-            int[,] rows = makeRows(boardVals);
-            int[,] cols = makeCols(boardVals);
+            int[,] rows = makeRows();
+            int[,] cols = makeCols();
 
             //compare each value in each row to each other value in that row
             for (int i = 0; i < 9; i++)
@@ -111,7 +116,12 @@ namespace Sudoku
                         {
                             //if two values are not the same entry and are equal, set that entry to invalid
                             if (j != k && rows[i, j] == rows[i, k])
+                            {
                                 valid[1, i] = true;
+                                j = 10;
+                                break;
+                            }
+
                         }
                     }
                 }
@@ -129,8 +139,11 @@ namespace Sudoku
                         for (int k = 0; k < 9; k++)
                         {
                             //if two values are not the same entry and are equal, set that entry to invalid
-                            if (j != k && cols[i, j] == cols[i, k])
+                            if (j != k && cols[i, j] == cols[i, k]) {
                                 valid[2, i] = true;
+                                j = 10;
+                                break;
+                            }
                         }
                     }
                 }
@@ -152,7 +165,13 @@ namespace Sudoku
                                 {
                                     //if two values are not the same entry and are equal, set that entry to invalid
                                     if (!(l == j && m == k) && boardVals[i, j, k] == boardVals[i, l, m])
+                                    {
                                         valid[0, i] = true;
+                                        j = 4;
+                                        k = 4;
+                                        l = 4;
+                                        break;
+                                    }
                                 }
                             }
                         }
@@ -162,13 +181,12 @@ namespace Sudoku
 
             return valid;
         }
-
         public bool isValid()
         {
             bool retFlag = true;
             bool[,] valid = new bool[3, 9];
-            int[,] rows = makeRows(boardVals);
-            int[,] cols = makeCols(boardVals);
+            int[,] rows = makeRows();
+            int[,] cols = makeCols();
 
             //compare each value in each row to each other value in that row
             for (int i = 0; i < 9; i++)
@@ -271,6 +289,16 @@ namespace Sudoku
 
             return rows;
         }
+        public int[,] makeRows()
+        {
+            int[,] rows = new int[9, 9];
+
+            for (int i = 0; i < 9; i++)
+                for (int j = 0; j < 9; j++)
+                    rows[i, j] = boardVals[j / 3 + ((i / 3) * 3), j % 3, i - ((i / 3) * 3)];
+
+            return rows;
+        }
 
         //returns an array of all values in each column
         public int[,] makeCols(int[,,] boardState)
@@ -280,6 +308,16 @@ namespace Sudoku
             for (int i = 0; i < 9; i++)
                 for (int j = 0; j < 9; j++)
                     cols[i, j] = boardState[((j / 3) * 3) + (i / 3), i - ((i / 3) * 3), j % 3];
+
+            return cols;
+        }
+        public int[,] makeCols()
+        {
+            int[,] cols = new int[9, 9];
+
+            for (int i = 0; i < 9; i++)
+                for (int j = 0; j < 9; j++)
+                    cols[i, j] = boardVals[((j / 3) * 3) + (i / 3), i - ((i / 3) * 3), j % 3];
 
             return cols;
         }
@@ -317,72 +355,61 @@ namespace Sudoku
             file.Close();
         }
 
-        public void Solve()
+        public void Solve(ref int entry, ref int val, ref bool valid)
         {
-            int entry = 0;
-            int val = 1;
-            bool valid;
 
-            do
+            testcount++;
+            if (val == 10)
             {
-                testcount++;
-                Console.WriteLine("At entry " + entry);
-                if (val == 10)
+                Console.WriteLine("That Shouldn't Happen");
+                Console.WriteLine("Broke on loop " + testcount);
+            return;
+            }
+            //creating reference coordinates based on entry value
+            int reg = entry / 9;
+            int col = (entry - (reg * 9)) % 3;
+            int row = (entry - (reg * 9)) / 3;
+
+
+            //if current entry being checked is a fixed value, go the next value
+            if (!fixedVals[reg, row, col])
+            {
+                //assign entry the value to be tested
+                boardVals[reg, row, col] = val;
+                valid = isValid();
+
+                //if the value is valid, go to the next entry
+                if (valid)
                 {
-                    Console.WriteLine("That Shouldn't Happen");
-                    Console.WriteLine("Broke on loop " + testcount);
-                    break;
+                    val = 1;
+                    entry++;
                 }
-                //creating reference coordinates based on entry value
-                int reg = entry / 9;
-                int col = (entry - (reg * 9)) % 3;
-                int row = (entry - (reg * 9)) / 3;
 
-
-                //if current entry being checked is a fixed value, go the next value
-                if (!fixedVals[reg, row, col])
+                //if the value in invalid and all 9 values have been tried,
+                //zero out the entry and go back to the previous non-fixed entry
+                else if (!valid && val == 9)
                 {
-                    //assign entry the value to be tested
-                    boardVals[reg, row, col] = val;
-                    valid = isValid();
-
-                    //if the value is valid, go to the next entry
-                    if (valid)
+                    do
                     {
-                        val = 1;
-                        entry++;
-                    }
+                        if (!fixedVals[reg, row, col])
+                            boardVals[reg, row, col] = 0;
 
-                    //if the value in invalid and all 9 values have been tried,
-                    //zero out the entry and go back to the previous non-fixed entry
-                    else if (!valid && val == 9)
-                    {
-                        do
-                        {
-                            if (!fixedVals[reg, row, col])
-                                boardVals[reg, row, col] = 0;
+                        --entry;
+                        reg = entry / 9;
+                        col = (entry - (reg * 9)) % 3;
+                        row = (entry - (reg * 9)) / 3;
 
-                            --entry;
-                            reg = entry / 9;
-                            col = (entry - (reg * 9)) % 3;
-                            row = (entry - (reg * 9)) / 3;
-
-                        } while (fixedVals[reg, row, col] || boardVals[reg, row, col] == 9);
-                        val = boardVals[reg, row, col] + 1;
-                    }
-                    //if the value is invlid and all 9 values have not been tried,
-                    //increment value and call again at same entry
-                    else if (!valid && val < 9)
-                    {
-                        ++val;
-                    }
+                    } while (fixedVals[reg, row, col] || boardVals[reg, row, col] == 9);
+                    val = boardVals[reg, row, col] + 1;
                 }
-                else ++entry;
-
-            } while (entry != 81);
-
-            Console.Write("Solution took " + testcount + " tries");
-
+                //if the value is invlid and all 9 values have not been tried,
+                //increment value and call again at same entry
+                else if (!valid && val < 9)
+                {
+                    ++val;
+                }
+            }
+            else ++entry;
         }
 
     }

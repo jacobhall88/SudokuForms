@@ -135,14 +135,6 @@ namespace Sudoku
         //colors each entry depending on whether or not it is a valid value
         private void colorValid(bool[,] valid)
         {
-            Console.WriteLine("Trying to validate");
-            for (int i = 0; i < 3; i++)
-            {
-                for (int j = 0; j < 9; j++)
-                    Console.Write(valid[i, j]);
-                Console.WriteLine();
-            }
-            state.testState();
             //if an entry is colored Red but is not invalid, set ForeColor to Black or White
             foreach (SudokuButton updateButton in buttons)
             {
@@ -249,7 +241,7 @@ namespace Sudoku
             Button newBoard = new Button();
             newBoard.Dock = DockStyle.Fill;
             newBoard.Text = "New";
-            newBoard.Click += new EventHandler(NewClick);
+            newBoard.Click += new EventHandler(NewClick2);
             menu.Controls.Add(newBoard);
 
             Button imprint = new Button();
@@ -344,6 +336,12 @@ namespace Sudoku
                 clickedButton.value = numberPicked;
             }
 
+            else
+            {
+                clickedButton.Text = "";
+                clickedButton.value = 0;
+            }
+
             //update the board state with the new value and validate the new board state
             currentState[clickedButton.region, clickedButton.col, clickedButton.row] = numberPicked;
             state.updateState(currentState);
@@ -387,13 +385,13 @@ namespace Sudoku
                         openButton.Text = "";
 
                     //convert button from mutable to immutable if necessary
-                    if (openButton.BackColor == Color.Black && !state.getFixed()[openButton.region, openButton.row, openButton.col])
+                    if (openButton.BackColor == Color.Black && !state.getFixed()[openButton.region, openButton.col, openButton.row])
                     {
                         openButton.BackColor = Color.White;
                         openButton.ForeColor = Color.Black;
                         openButton.Click += new EventHandler(ButtonClick);
                     }
-                    if (openButton.BackColor == Color.White && state.getFixed()[openButton.region, openButton.row, openButton.col] && openButton.value != 0)
+                    if (openButton.BackColor == Color.White && state.getFixed()[openButton.region, openButton.col, openButton.row] && openButton.value != 0)
                     {
                         openButton.BackColor = Color.Black;
                         openButton.ForeColor = Color.White;
@@ -403,6 +401,7 @@ namespace Sudoku
                 colorValid(state.validateBoard());
 
             }
+
             if (newGame)
             {
                 Button clicked = (Button)sender;
@@ -410,6 +409,7 @@ namespace Sudoku
                 newGame = false;
                 parent.Close();
             }
+
         }
 
         //event handler for when 'Save Board' button is clicked
@@ -462,16 +462,17 @@ namespace Sudoku
                 newbutton.BackColor = Color.White;
                 newbutton.ForeColor = Color.Black;
             }
-            if (newGame)
-            {
-                Button clicked = (Button)sender;
-                Form parent = (Form)clicked.Parent.Parent;
-                newGame = false;
-                parent.Close();
-            }
+            Button clicked = (Button)sender;
+            Form parent = (Form)clicked.Parent.Parent;
+            newGame = false;
+            parent.Close();
             state = new BoardState();
         }
 
+        private void NewClick2(object sender, EventArgs e)
+        {
+            NewGame(false);
+        }
         //event handler for when 'Imprint' is clicked
         //makes all values currently on the board immutable, if board state is valid
         private void ImprintClick(object sender, EventArgs e)
@@ -524,13 +525,7 @@ namespace Sudoku
                     newbutton.BackColor = Color.White;
                     newbutton.ForeColor = Color.Black;
                 }
-                if (newGame)
-                {
-                    Button clicked = (Button)sender;
-                    Form parent = (Form)clicked.Parent.Parent;
-                    newGame = false;
-                    parent.Close();
-                }
+
                 state = new BoardState();
 
                 validate = true;
@@ -564,23 +559,35 @@ namespace Sudoku
                 }
 
             } while (!validate);
-            if (newGame)
-            {
-                Button clicked = (Button)sender;
-                Form parent = (Form)clicked.Parent.Parent;
-                newGame = false;
-                parent.Close();
-            }
+
+            Button clicked = (Button)sender;
+            Form parent = (Form)clicked.Parent.Parent;
+            newGame = false;
+            parent.Close();
+
         }
 
         private void SolveClick(object sender, EventArgs e)
         {
-            state.Solve();
-
-            foreach (SudokuButton solveButton in buttons)
+            int entry = 0;
+            int val = 1;
+            bool valid = false;
+            int count = 0;
+            do
             {
-                solveButton.Text = state.getVals()[solveButton.region, solveButton.col, solveButton.row].ToString();
-            }
+                state.Solve(ref entry, ref val, ref valid);
+                foreach (SudokuButton solveButton in buttons)
+                {
+
+                    if (state.getVals(solveButton.region, solveButton.col, solveButton.row) > 0)
+                        solveButton.Text = state.getVals(solveButton.region, solveButton.col, solveButton.row).ToString();
+                    else
+                        solveButton.Text = "";
+                    solveButton.Update();
+                }
+                ++count;
+            } while (entry != 81);
+            Console.WriteLine("This took " + count + " tries");
         }
 
     }
